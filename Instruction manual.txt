@@ -1,0 +1,46 @@
+bash (Setting up Environment Variables):
+# Create a .env file
+cp .env.example .env
+
+# Fill in the variables
+# Get the API keys:
+# - Telegram Bot Token: @BotFather
+# - Google API: Google Cloud Console
+# - OpenAI: platform.openai.com
+# - Zoom: marketplace.zoom.us
+# - Microsoft: portal.azure.com
+
+bash 2 (Initializing the database):
+# Run the migrations
+alembic upgrade head
+
+# Or create the database manually
+createdb scheduler_bot
+
+bash 3 (Launching via Docker):
+# Build and start
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+
+bash 4 (Configuring Webhooks):
+# Install ngrok for testing
+ngrok http 8080
+
+# Configure webhooks in the Google Cloud Console
+# Specify the URL received from ngrok
+
+bash 5 (Deployment in production):
+# Use the deployment script
+./scripts/deploy.sh
+
+# Configure SSL certificates
+certbot --nginx -d yourdomain.com
+
+# Configure backup
+crontab -e
+# Add: 0 2 * * * /app/scripts/backup_db.sh

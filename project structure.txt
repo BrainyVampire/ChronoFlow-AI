@@ -1,0 +1,86 @@
+scheduler-bot/
+│
+├── main.py
+├── config.py
+├── requirements.txt
+├── webhook_server.py
+├── api_server.py
+├── docker-compose.yml
+├── Dockerfile
+│
+├── database/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── crud.py
+│   ├── migrations/
+│   │   ├── versions/
+│   │   └── alembic.ini
+│   └── alembic_env.py
+│
+├── handlers/
+│   ├── __init__.py
+│   ├── start.py
+│   ├── tasks.py
+│   ├── calendar.py
+│   ├── templates.py
+│   ├── analytics.py
+│   ├── integrations.py
+│   ├── collaborative.py
+│   ├── ai_assistant.py
+│   └── web_app.py
+│
+├── services/
+│   ├── __init__.py
+│   ├── google_calendar.py
+│   ├── outlook_calendar.py
+│   ├── microsoft_teams.py
+│   ├── zoom_integration.py
+│   ├── google_meet.py
+│   ├── scheduler.py
+│   ├── webhook_manager.py
+│   ├── ai_service.py
+│   ├── notification_service.py
+│   ├── analytics_service.py
+│   ├── report_generator.py
+│   └── utils.py
+│
+├── keyboards/
+│   ├── __init__.py
+│   ├── inline.py
+│   ├── reply.py
+│   └── web_app.py
+│
+├── api/
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── schemas.py
+│   └── auth.py
+│
+├── webhooks/
+│   ├── __init__.py
+│   ├── google_calendar.py
+│   ├── outlook.py
+│   └── handlers.py
+│
+├── mobile_app/
+│   └── react_native/
+│       ├── App.js
+│       ├── components/
+│       └── screens/
+│
+├── static/
+│   ├── web_app/
+│   │   ├── index.html
+│   │   ├── app.js
+│   │   └── styles.css
+│   └── reports/
+│
+├── tests/
+│   ├── test_handlers.py
+│   ├── test_services.py
+│   └── test_integrations.py
+│
+└── scripts/
+    ├── deploy.sh
+    ├── backup_db.sh
+    └── setup_nginx.sh

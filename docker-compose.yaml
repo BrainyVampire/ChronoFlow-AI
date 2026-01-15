@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: scheduler_user
+      POSTGRES_PASSWORD: scheduler_password
+      POSTGRES_DB: scheduler_bot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bot:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_URL=postgresql+asyncpg://scheduler_user:scheduler_password@postgres/scheduler_bot
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TOKEN=${BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  api:
+    build: .
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=postgresql+asyncpg://scheduler_user:scheduler_password@postgres/scheduler_bot
+      - REDIS_URL=redis://redis:6379/0
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - SECRET_KEY=${SECRET_KEY}
+    command: uvicorn api_server:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  webhook:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_URL=postgresql+asyncpg://scheduler_user:scheduler_password@postgres/scheduler_bot
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    command: python webhook_server.py
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - ./static:/usr/share/nginx/html
+    depends_on:
+      - api
+      - webhook
+    restart: unless-stopped
+
+  celery:
+    build: .
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - DB_URL=postgresql+asyncpg://scheduler_user:scheduler_password@postgres/scheduler_bot
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    command: celery -A services.tasks.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - DB_URL=postgresql+asyncpg://scheduler_user:scheduler_password@postgres/scheduler_bot
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    command: celery -A services.tasks.celery_app beat --loglevel=info
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
