@@ -1,0 +1,24 @@
+to the services folder:
+ai_service
+analytics_service
+google_meet
+microsoft_teams
+report_generator
+webhook_manager
+zoom_integration
+
+to the mobile_app folder:
+  to the react_native folder:
+     App
+     screens folder:
+       TasksScreen
+
+to the handlers folder:
+ai_assistant
+collaborative
+
+to the database folder:
+models
+
+to the api folder:
+routes
